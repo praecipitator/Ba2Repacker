@@ -8,7 +8,7 @@ namespace Ba2Repacker
         [SynthesisOrder]
         [SynthesisSettingName("Enable MO2 Mode")]
         [SynthesisTooltip("The patcher will attempt to find your current MO2 profile, and keep the disabled BA2 files within the corresponding mod directories")]
-        public bool EnableMO2Mode = true;
+        public bool EnableMO2Mode = false;
 
         [SynthesisOrder]
         [SynthesisSettingName("Override MO2 Profile Name")]
@@ -58,8 +58,6 @@ namespace Ba2Repacker
         [SynthesisTooltip("If Whitelist Mode is enabled, only these mods will be eligible for repacking")]
         public List<ModKey> modWhitelist = new()
         {
-            new ModKey("PoseidonOffices", ModType.Plugin),
-            new ModKey("(SKII)Trapper_PA", ModType.Plugin)
         };
 
         [SynthesisOrder]
