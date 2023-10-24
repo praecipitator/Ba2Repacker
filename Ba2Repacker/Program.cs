@@ -1,19 +1,16 @@
 using Mutagen.Bethesda;
-using Mutagen.Bethesda.Synthesis;
 using Mutagen.Bethesda.Fallout4;
+using Mutagen.Bethesda.Synthesis;
 
 namespace Ba2Repacker
 {
     public class Program
     {
-        static Lazy<Settings> _lazySettings = null!;
-        static Settings cfg => _lazySettings.Value;
+        private static Lazy<Settings> _lazySettings = null!;
+        private static Settings cfg => _lazySettings.Value;
 
-
-        
         public static async Task<int> Main(string[] args)
         {
-
             return await SynthesisPipeline.Instance
                 .AddPatch<IFallout4Mod, IFallout4ModGetter>(RunPatch)
                 .SetTypicalOpen(GameRelease.Fallout4, "B2Loader.esp")

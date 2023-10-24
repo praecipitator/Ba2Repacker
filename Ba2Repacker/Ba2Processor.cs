@@ -2,7 +2,6 @@ using Ba2Repacker.FileSystem;
 using Mutagen.Bethesda.Fallout4;
 using Mutagen.Bethesda.FormKeys.Fallout4;
 using Mutagen.Bethesda.Plugins;
-using Mutagen.Bethesda.Plugins.Order;
 using Mutagen.Bethesda.Synthesis;
 using Noggog;
 using System.Text.RegularExpressions;
@@ -121,7 +120,7 @@ namespace Ba2Repacker
 
             var tempPath = Path.Combine(Path.GetTempPath(), "BA2_Repacker_temp");
 
-            if(cfg.mo2Settings.EnableMO2Mode)
+            if (cfg.mo2Settings.EnableMO2Mode)
             {
                 fsWrapper = new MO2FileSystem(state.DataFolderPath, cfg.mo2Settings);
                 //fsWrapper.CopyFile("F:\\SteamSSD\\steamapps\\common\\Fallout 4\\data\\meh\\testFile.txt", "F:\\SteamSSD\\steamapps\\common\\Fallout 4\\data\\meh\\testFile.foo.txt");
@@ -133,7 +132,6 @@ namespace Ba2Repacker
 
             repacker = new(state.DataFolderPath, cfg.disabledSuffix, fsWrapper, tempPath);
         }
-
 
         public void Process()
         {
@@ -360,7 +358,7 @@ namespace Ba2Repacker
             return result;
         }
 
-        IEnumerable<string> getArchivesForFile(string baseName, bool exactMatchOnly = true)
+        private IEnumerable<string> getArchivesForFile(string baseName, bool exactMatchOnly = true)
         {
             var ba2Base = baseName + " - ";
             if (!exactMatchOnly)
@@ -373,7 +371,7 @@ namespace Ba2Repacker
             var mainName = ba2Base + "Main.ba2";
             var texName = ba2Base + "Textures.ba2";
 
-            if(allBa2Names.Contains(mainName, StringComparer.OrdinalIgnoreCase))
+            if (allBa2Names.Contains(mainName, StringComparer.OrdinalIgnoreCase))
             {
                 result.Add(mainName);
             }
@@ -396,15 +394,14 @@ namespace Ba2Repacker
             targetList.Add(fileName);
         }
 
-        
-
         private void RestoreInitialState()
         {
             DeleteIfExists(combinedMainArchive);
             DeleteIfExists(combinedTextureArchive);
-            
+
             // disabledPath
-            string[] allFiles = Directory.GetFiles(state.DataFolderPath, "*.ba2"+cfg.disabledSuffix, SearchOption.TopDirectoryOnly);
+            var allFiles = fsWrapper.GetDirectoryFiles(state.DataFolderPath, "*.ba2" + cfg.disabledSuffix, SearchOption.TopDirectoryOnly);
+            //string[] allFiles = Directory.GetFiles(state.DataFolderPath, "*.ba2"+cfg.disabledSuffix, SearchOption.TopDirectoryOnly);
             foreach (var srcFullPath in allFiles)
             {
                 var fileName = Path.GetFileName(srcFullPath).SubtractSuffix(cfg.disabledSuffix);
@@ -435,7 +432,8 @@ namespace Ba2Repacker
 
         private void loadExistingBa2s()
         {
-            string[] allFiles = Directory.GetFiles(state.DataFolderPath, "*.ba2", SearchOption.TopDirectoryOnly);
+            //string[] allFiles = Directory.GetFiles(state.DataFolderPath, "*.ba2", SearchOption.TopDirectoryOnly);
+            var allFiles = fsWrapper.GetDirectoryFiles(state.DataFolderPath, "*.ba2", SearchOption.TopDirectoryOnly);
             foreach (var fullPath in allFiles)
             {
                 allBa2Names.Add(Path.GetFileName(fullPath));

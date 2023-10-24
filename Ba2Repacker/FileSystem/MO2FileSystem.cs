@@ -1,15 +1,9 @@
 using Ba2Repacker.IniParser;
-using Noggog;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Ba2Repacker.FileSystem
 {
-    internal class MO2FileSystem: RealFileSystem
+    internal class MO2FileSystem : RealFileSystem
     {
         private Environment.SpecialFolder[] SpecialFolders = {
             Environment.SpecialFolder.LocalApplicationData, // local
@@ -39,20 +33,20 @@ namespace Ba2Repacker.FileSystem
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        override public string ResolvePath(string path)
+        public override string ResolvePath(string path)
         {
-            if(!path.StartsWith(gameDataPath, StringComparison.OrdinalIgnoreCase))
+            if (!path.StartsWith(gameDataPath, StringComparison.OrdinalIgnoreCase))
             {
                 return path;
             }
             var relPath = Path.GetRelativePath(gameDataPath, path);
-            if(relPath == null)
+            if (relPath == null)
             {
                 return path;
             }
 
             var targetMod = FindModContaining(relPath);
-            if(targetMod != "")
+            if (targetMod != "")
             {
                 return Path.Combine(mo2ModsDirectory, targetMod, relPath);
             }
@@ -74,7 +68,7 @@ namespace Ba2Repacker.FileSystem
             return "";
         }
 
-        override public bool RenameFile(string src, string dst, bool overwrite = false)
+        public override bool RenameFile(string src, string dst, bool overwrite = false)
         {
             if (
                 src.StartsWith(gameDataPath, StringComparison.OrdinalIgnoreCase) &&
@@ -106,7 +100,42 @@ namespace Ba2Repacker.FileSystem
             return base.RenameFile(src, dst, overwrite);
         }
 
-        override public bool CopyFile(string src, string dst, bool overwrite = false)
+        public override List<string> GetDirectoryFiles(string inPath, string filter, SearchOption options = SearchOption.TopDirectoryOnly)
+        {
+            var result = new HashSet<string>();
+
+            if (!inPath.StartsWith(gameDataPath, StringComparison.OrdinalIgnoreCase))
+            {
+                return base.GetDirectoryFiles(inPath, filter, options);
+            }
+
+            var relPath = Path.GetRelativePath(gameDataPath, inPath);
+            if (relPath == null)
+            {
+                return base.GetDirectoryFiles(inPath, filter, options);
+            }
+
+            foreach (var modName in EnabledModNames)
+            {
+                var modPath = Path.GetFullPath(relPath, Path.Combine(mo2ModsDirectory, modName));
+                if (Directory.Exists(modPath))
+                {
+                    var curStrings = Directory.GetFiles(modPath, filter, options);
+
+                    foreach (var str in curStrings)
+                    {
+                        // now, we need to subtract modPath again
+                        var relStr = Path.GetRelativePath(modPath, str);
+                        // and absolutize it for inPath
+                        result.Add(Path.Combine(inPath, relStr));
+                    }
+                }
+            }
+
+            return result.ToList();
+        }
+
+        public override bool CopyFile(string src, string dst, bool overwrite = false)
         {
             if (
                 src.StartsWith(gameDataPath, StringComparison.OrdinalIgnoreCase) &&
@@ -143,13 +172,13 @@ namespace Ba2Repacker.FileSystem
             var mo2dir = findMO2AppData();
 
             var f4dir = Path.Combine(mo2dir, "Fallout 4");
-            if(!Directory.Exists(f4dir))
+            if (!Directory.Exists(f4dir))
             {
                 throw new FileNotFoundException("Failed to find MO2's configuration folder for Fallout 4", f4dir);
             }
 
             var mainIni = Path.Combine(f4dir, "ModOrganizer.ini");
-            if(!File.Exists(mainIni))
+            if (!File.Exists(mainIni))
             {
                 throw new FileNotFoundException("Failed to find MO2's configuration file for Fallout 4", mainIni);
             }
@@ -158,7 +187,7 @@ namespace Ba2Repacker.FileSystem
 
             mo2BaseDirectory = NormalizePath(mainIniReader.GetValueMO2("Settings", "base_directory"));
 
-            if(mo2BaseDirectory == "" || !Directory.Exists(mo2BaseDirectory))
+            if (mo2BaseDirectory == "" || !Directory.Exists(mo2BaseDirectory))
             {
                 throw new FileNotFoundException("MO2's Fallout 4 dir is empty or doesn't exist", mo2BaseDirectory);
             }
@@ -178,11 +207,11 @@ namespace Ba2Repacker.FileSystem
             }
 
             var profileName = cfg.profileOverride;
-            if(cfg.profileOverride == "")
+            if (cfg.profileOverride == "")
             {
                 profileName = mainIniReader.GetValueMO2("General", "selected_profile");
             }
-            if(profileName == "")
+            if (profileName == "")
             {
                 throw new InvalidDataException("Failed to read the currently selected MO2 profile");
             }
@@ -191,11 +220,11 @@ namespace Ba2Repacker.FileSystem
             mo2ProfileDirectory = Path.Combine(profilesDir, profileName);
             if (!Directory.Exists(mo2ProfileDirectory))
             {
-                throw new FileNotFoundException("Profile folder for "+profileName+" doesn't exist", mo2ProfileDirectory);
+                throw new FileNotFoundException("Profile folder for " + profileName + " doesn't exist", mo2ProfileDirectory);
             }
 
             var modListPath = Path.Combine(mo2ProfileDirectory, "modlist.txt");
-            if(!File.Exists(modListPath))
+            if (!File.Exists(modListPath))
             {
                 throw new FileNotFoundException("modlist.txt doesn't exist!", modListPath);
             }
@@ -206,8 +235,8 @@ namespace Ba2Repacker.FileSystem
             // then, in "ModOrganizer.ini"
             /*
             [Settings]
-            base_directory=F:/MO2-Games/Fallout4 
-            // MAYBE other paths are also  here? 
+            base_directory=F:/MO2-Games/Fallout4
+            // MAYBE other paths are also  here?
             // maybe mod_directory?
             // cache_directory=F:/MO2-Games/Fallout4/webcache_test
             // %BASE_DIR%
@@ -233,7 +262,7 @@ namespace Ba2Repacker.FileSystem
             {
                 line = line.Trim();
                 if (line == "") continue;
-                if(line.StartsWith('+'))
+                if (line.StartsWith('+'))
                 {
                     var modName = line[1..];
                     EnabledModNames.Add(modName);
@@ -250,10 +279,10 @@ namespace Ba2Repacker.FileSystem
 
         private string findMO2AppData()
         {
-            foreach(var folderEntry in SpecialFolders)
+            foreach (var folderEntry in SpecialFolders)
             {
                 var appData = Environment.GetFolderPath(folderEntry);
-                if(!Directory.Exists(appData))
+                if (!Directory.Exists(appData))
                 {
                     continue;
                 }

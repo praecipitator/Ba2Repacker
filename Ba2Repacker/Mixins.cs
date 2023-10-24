@@ -1,10 +1,3 @@
-using Noggog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Ba2Repacker
 {
     internal static class Mixins
@@ -14,13 +7,12 @@ namespace Ba2Repacker
             var suffixLength = suffix.Length;
             var maybeSuffix = str[^suffixLength..];
 
-            if(maybeSuffix == suffix)
+            if (maybeSuffix == suffix)
             {
                 return str[0..^suffixLength];
             }
 
             return str;
-
         }
     }
 }

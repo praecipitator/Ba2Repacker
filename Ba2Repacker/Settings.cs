@@ -22,7 +22,6 @@ namespace Ba2Repacker
         [SynthesisSettingName("MO2 Settings")]
         public Section_MO2Settings mo2Settings = new();
 
-
         [SynthesisOrder]
         [SynthesisSettingName("Main BA2 Limit")]
         [SynthesisTooltip("Main BA2 repacking will happen if you have more main BA2s, master files, and cdx/csg files than this.")]
@@ -56,9 +55,7 @@ namespace Ba2Repacker
         [SynthesisOrder]
         [SynthesisSettingName("Mod Whitelist")]
         [SynthesisTooltip("If Whitelist Mode is enabled, only these mods will be eligible for repacking")]
-        public List<ModKey> modWhitelist = new()
-        {
-        };
+        public List<ModKey> modWhitelist = new();
 
         [SynthesisOrder]
         [SynthesisSettingName("Disabled BA2 suffix")]

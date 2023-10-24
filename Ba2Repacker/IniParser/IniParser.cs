@@ -1,11 +1,5 @@
-using IniParser.Model;
-using Noggog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Ba2Repacker.IniParser
 {
@@ -23,7 +17,7 @@ namespace Ba2Repacker.IniParser
 
         public Dictionary<string, string>? getSection(string name)
         {
-            if(!iniData.ContainsKey(name))
+            if (!iniData.ContainsKey(name))
             {
                 return null;
             }
@@ -34,12 +28,12 @@ namespace Ba2Repacker.IniParser
         public string GetValue(string section, string key, string defaultValue = "")
         {
             var dict = getSection(section);
-            if(dict == null)
+            if (dict == null)
             {
                 return defaultValue;
             }
 
-            if(!dict.ContainsKey(key))
+            if (!dict.ContainsKey(key))
             {
                 return defaultValue;
             }
@@ -51,7 +45,7 @@ namespace Ba2Repacker.IniParser
         public string GetValueMO2(string section, string key, string defaultValue = "")
         {
             var val = GetValue(section, key, defaultValue);
-            if(val == "")
+            if (val == "")
             {
                 return val;
             }
@@ -61,11 +55,11 @@ namespace Ba2Repacker.IniParser
             {
                 // parse this
                 var match = EXTRACT_MO2_PARAMS.Match(val);
-                if(match.Groups.Count == 3)
+                if (match.Groups.Count == 3)
                 {
                     var typeName = match.Groups[1].Value;
                     var value = match.Groups[2].Value;
-                    if(typeName == "ByteArray")
+                    if (typeName == "ByteArray")
                     {
                         return value;
                     }
@@ -105,16 +99,16 @@ namespace Ba2Repacker.IniParser
                 {
                     continue; // skip
                 }
-                if(line.StartsWith('[') && line.EndsWith(']'))
+                if (line.StartsWith('[') && line.EndsWith(']'))
                 {
                     // section
                     var sectionName = line.Substring(1, line.Length - 2);
                     currentSection = GetOrCreateSection(sectionName);
-                } 
+                }
                 else
                 {
                     var eqIndex = line.IndexOf('=');
-                    if(eqIndex < 0)
+                    if (eqIndex < 0)
                     {
                         // bad line? take it as-is
                         currentSection.Add(line, "");

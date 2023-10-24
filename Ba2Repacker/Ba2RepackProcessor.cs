@@ -40,7 +40,7 @@ namespace Ba2Repacker
             var state = await getBa2State(firstPrevBa2);
 
             var path = fsWrapper.CombinePath(dataFolder, archiveName);
-            
+
             if (fsWrapper.FileExists(path))
             {
                 // delete it

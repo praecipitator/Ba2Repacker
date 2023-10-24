@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Ba2Repacker.FileSystem
 {
     internal interface IFileSystem
@@ -25,5 +19,7 @@ namespace Ba2Repacker.FileSystem
         public bool IsReadable(string path);
 
         public string CombinePath(params string[] parts);
+
+        public List<string> GetDirectoryFiles(string inPath, string filter, SearchOption options = SearchOption.TopDirectoryOnly);
     }
 }
