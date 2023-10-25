@@ -276,7 +276,7 @@ namespace Ba2Repacker
                 {
                     continue;
                 }
-                var fullPath = Path.Combine(state.DataFolderPath, mainBa2);
+                var fullPath = fsWrapper.ResolvePath(Path.Combine(state.DataFolderPath, mainBa2));
 
                 var data = new FileNameAndSize
                 {
@@ -303,7 +303,8 @@ namespace Ba2Repacker
                 {
                     continue;
                 }
-                var fullPath = Path.Combine(state.DataFolderPath, textureBa2);
+                var fullPath = fsWrapper.ResolvePath(Path.Combine(state.DataFolderPath, textureBa2));
+
                 var data = new FileNameAndSize
                 {
                     fileName = textureBa2,
