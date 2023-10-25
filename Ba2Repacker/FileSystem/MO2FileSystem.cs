@@ -1,4 +1,7 @@
 using Ba2Repacker.IniParser;
+using GameFinder.Common;
+using Microsoft.Extensions.Options;
+using Mutagen.Bethesda.Plugins;
 using System.Text;
 
 namespace Ba2Repacker.FileSystem
@@ -16,6 +19,7 @@ namespace Ba2Repacker.FileSystem
         private string mo2BaseDirectory = "";
         private string mo2ProfileDirectory = "";
         private string mo2ModsDirectory = "";
+        private string mo2OverwriteDirectory = "";
         private string gameDataPath;
 
         // this is in the reverse order already
@@ -45,24 +49,41 @@ namespace Ba2Repacker.FileSystem
                 return path;
             }
 
-            var targetMod = FindModContaining(relPath);
-            if (targetMod != "")
+            var modBaseDir = FindBasedirContaining(relPath);
+            if(modBaseDir != "")
             {
-                return Path.Combine(mo2ModsDirectory, targetMod, relPath);
+                return Path.GetFullPath(relPath, modBaseDir);
             }
 
             return path;
         }
 
-        public string FindModContaining(string relPath)
+        private string FindBasedirContaining(string relPath)
         {
+            // first, check in Override
+            // var baseDir = Path.Combine(mo2OverwriteDirectory, relPath);
+            var modPath = Path.GetFullPath(relPath, mo2OverwriteDirectory);
+            if (File.Exists(modPath))
+            {
+                return mo2OverwriteDirectory;
+            }
+
             foreach (var modName in EnabledModNames)
             {
-                var modPath = Path.Combine(mo2ModsDirectory, modName, relPath);
+                // var modPath = Path.Combine(mo2ModsDirectory, modName, relPath);
+                var baseDir = Path.Combine(mo2ModsDirectory, modName);
+                modPath = Path.GetFullPath(relPath, baseDir);
                 if (File.Exists(modPath))
                 {
-                    return modName;
+                    return baseDir;
                 }
+            }
+
+            // finally, check the actual data
+            modPath = Path.GetFullPath(relPath, gameDataPath);
+            if (File.Exists(modPath))
+            {
+                return gameDataPath;
             }
 
             return "";
@@ -79,11 +100,9 @@ namespace Ba2Repacker.FileSystem
                 var relPathDst = Path.GetRelativePath(gameDataPath, dst);
                 if (relPathSrc != null && relPathDst != null)
                 {
-                    var targetMod = FindModContaining(relPathSrc);
-                    if (targetMod != "")
+                    var modBaseDir = FindBasedirContaining(relPathSrc);
+                    if(modBaseDir != "")
                     {
-                        var modBaseDir = Path.Combine(mo2ModsDirectory, targetMod);
-
                         try
                         {
                             File.Move(Path.Combine(modBaseDir, relPathSrc), Path.Combine(modBaseDir, relPathDst));
@@ -115,6 +134,9 @@ namespace Ba2Repacker.FileSystem
                 return base.GetDirectoryFiles(inPath, filter, options);
             }
 
+            // first, check overwrite
+            GetDirectoryFilesInternal(result, mo2OverwriteDirectory, inPath, filter, options);
+
             foreach (var modName in EnabledModNames)
             {
                 var modPath = Path.GetFullPath(relPath, Path.Combine(mo2ModsDirectory, modName));
@@ -122,17 +144,27 @@ namespace Ba2Repacker.FileSystem
                 {
                     var curStrings = Directory.GetFiles(modPath, filter, options);
 
-                    foreach (var str in curStrings)
-                    {
-                        // now, we need to subtract modPath again
-                        var relStr = Path.GetRelativePath(modPath, str);
-                        // and absolutize it for inPath
-                        result.Add(Path.Combine(inPath, relStr));
-                    }
+                    GetDirectoryFilesInternal(result, modPath, inPath, filter, options);
                 }
             }
 
+            // then, check the actual data
+            GetDirectoryFilesInternal(result, gameDataPath, inPath, filter, options);
+
             return result.ToList();
+        }
+
+        private static void GetDirectoryFilesInternal(HashSet<string> outList, string basePath, string inPath, string filter, SearchOption options)
+        {
+            var curStrings = Directory.GetFiles(basePath, filter, options);
+
+            foreach (var str in curStrings)
+            {
+                // now, we need to subtract basePath again
+                var relStr = Path.GetRelativePath(basePath, str);
+                // and absolutize it for inPath
+                outList.Add(Path.Combine(inPath, relStr));
+            }
         }
 
         public override bool CopyFile(string src, string dst, bool overwrite = false)
@@ -146,11 +178,9 @@ namespace Ba2Repacker.FileSystem
                 var relPathDst = Path.GetRelativePath(gameDataPath, dst);
                 if (relPathSrc != null && relPathDst != null)
                 {
-                    var targetMod = FindModContaining(relPathSrc);
-                    if (targetMod != "")
+                    var modBaseDir = FindBasedirContaining(relPathSrc);
+                    if(modBaseDir != "")
                     {
-                        var modBaseDir = Path.Combine(mo2ModsDirectory, targetMod);
-
                         try
                         {
                             File.Copy(Path.Combine(modBaseDir, relPathSrc), Path.Combine(modBaseDir, relPathDst));
@@ -205,6 +235,15 @@ namespace Ba2Repacker.FileSystem
             {
                 throw new FileNotFoundException("MO2's Fallout 4 profiles dir is empty or doesn't exist", profilesDir);
             }
+
+            // overwrite_directory //%BASE_DIR%/overwrite
+            mo2OverwriteDirectory = NormalizePath(mainIniReader.GetValueMO2("Settings", "overwrite_directory", "%BASE_DIR%/overwrite"));
+            mo2OverwriteDirectory = mo2OverwriteDirectory.Replace("%BASE_DIR%", mo2BaseDirectory);
+            if (mo2OverwriteDirectory == "" || !Directory.Exists(mo2OverwriteDirectory))
+            {
+                throw new FileNotFoundException("MO2's Fallout 4 overwrite dir is empty or doesn't exist", mo2OverwriteDirectory);
+            }
+
 
             var profileName = cfg.profileOverride;
             if (cfg.profileOverride == "")
@@ -295,6 +334,11 @@ namespace Ba2Repacker.FileSystem
             }
 
             return "";
+        }
+
+        public override long GetFileSize(string path)
+        {
+            return new FileInfo(ResolvePath(path)).Length;
         }
     }
 }

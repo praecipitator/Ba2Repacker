@@ -21,5 +21,7 @@ namespace Ba2Repacker.FileSystem
         public string CombinePath(params string[] parts);
 
         public List<string> GetDirectoryFiles(string inPath, string filter, SearchOption options = SearchOption.TopDirectoryOnly);
+
+        public long GetFileSize(string path);
     }
 }

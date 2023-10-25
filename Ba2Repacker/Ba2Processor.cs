@@ -150,9 +150,9 @@ namespace Ba2Repacker
                 if (curMod != null)
                 {
                     var curFileInfo = GetFileInfo(curMod);
-
                     numMainFiles += curFileInfo.getNumFiles(false);
                     numTextureFiles += curFileInfo.textureArchives.Count;
+                    //Console.WriteLine("File "+key+" has "+ numMainFiles+" main files");
 
                     if (curFileInfo.isVanilla)
                     {
@@ -183,6 +183,12 @@ namespace Ba2Repacker
 
             Console.WriteLine("Main files: " + numMainFiles + ", Texture Files: " + numTextureFiles);
             Console.WriteLine("We have " + (eligibleMods.Count) + " eligible mods");
+            /*
+            foreach(var m in eligibleMods)
+            {
+                Console.WriteLine(" "+m.getMainBa2Name());
+            }
+            */
 
             var mainTooMany = numMainFiles - cfg.Ba2Limit;
             var texTooMany = numTextureFiles - cfg.TextureLimit;
@@ -196,6 +202,7 @@ namespace Ba2Repacker
             if (mainTooMany > 0)
             {
                 var list = sortAndLimit(getMainArchiveList(eligibleMods), mainTooMany);
+                // Console.WriteLine("OK, list = "+list.Count);
                 if (list.Count > 1)
                 {
                     Console.WriteLine("Repacking a new MAIN BA2");
@@ -274,22 +281,27 @@ namespace Ba2Repacker
                 var mainBa2 = entry.getMainBa2Name();
                 if (mainBa2 == "")
                 {
+                    Console.WriteLine("Skipping " + entry.modKey + " because no Main BA2");
                     continue;
                 }
-                var fullPath = fsWrapper.ResolvePath(Path.Combine(state.DataFolderPath, mainBa2));
+                var fullPath = Path.Combine(state.DataFolderPath, mainBa2);
 
                 var data = new FileNameAndSize
                 {
                     fileName = mainBa2,
-                    fileSize = new System.IO.FileInfo(fullPath).Length,
+                    fileSize = fsWrapper.GetFileSize(fullPath),//new System.IO.FileInfo(fullPath).Length,
                     loadOrder = getLoadOrderIndex(entry.modKey)
                 };
                 if (data.fileSize <= cfg.MaxFileSize * 1000000)
                 {
                     result.Add(data);
+                } else
+                {
+                    Console.WriteLine("Skipping " + entry.modKey + " because too large");
                 }
             }
 
+            Console.WriteLine("getMainArchiveList returns " + result.Count+ " entries");
             return result;
         }
 
@@ -303,12 +315,12 @@ namespace Ba2Repacker
                 {
                     continue;
                 }
-                var fullPath = fsWrapper.ResolvePath(Path.Combine(state.DataFolderPath, textureBa2));
+                var fullPath = Path.Combine(state.DataFolderPath, textureBa2);
 
                 var data = new FileNameAndSize
                 {
                     fileName = textureBa2,
-                    fileSize = new System.IO.FileInfo(fullPath).Length,
+                    fileSize = fsWrapper.GetFileSize(fullPath),//new System.IO.FileInfo(fullPath).Length,
                     loadOrder = getLoadOrderIndex(entry.modKey)
                 };
                 if (data.fileSize <= cfg.MaxFileSize)
@@ -387,7 +399,7 @@ namespace Ba2Repacker
 
         private void addFileIfExists(HashSet<string> targetList, string fileName)
         {
-            var fullPath = Path.Combine(state.DataFolderPath, fileName);
+            var fullPath = fsWrapper.CombinePath(state.DataFolderPath, fileName);
             if (!fsWrapper.FileExists(fullPath))
             {
                 return;
@@ -459,15 +471,15 @@ namespace Ba2Repacker
             */
             ccModNames.AddRange(lines);
         }
-
+        /*
         private bool hasMainBa2(ModKey mod)
         {
             string baseName = Path.GetFileNameWithoutExtension(mod.FileName);
 
             var fullPath = Path.Combine(state.DataFolderPath, baseName + " - Main.ba2");
             return fsWrapper.FileExists(fullPath);
-        }
-
+        }*/
+        /*
         private int getNumStreamingFiles(ModKey mod)
         {
             int result = 0;
@@ -498,13 +510,14 @@ namespace Ba2Repacker
 
             return result;
         }
-
+        */
+        /*
         private bool hasFile(string fileName)
         {
             var fullPath = Path.Combine(state.DataFolderPath, fileName);
             return fsWrapper.FileExists(fullPath);
         }
-
+        */
         private bool isVanillaFile(ModKey mod)
         {
             return (vanillaMods.Contains(mod));

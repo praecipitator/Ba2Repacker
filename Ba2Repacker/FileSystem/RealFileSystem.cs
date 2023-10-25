@@ -1,3 +1,5 @@
+using Wabbajack.Paths;
+
 namespace Ba2Repacker.FileSystem
 {
     internal class RealFileSystem : IFileSystem
@@ -106,6 +108,11 @@ namespace Ba2Repacker.FileSystem
             var strings = Directory.GetFiles(inPath, filter, options);
 
             return strings.ToList();
+        }
+
+        public virtual long GetFileSize(string path)
+        {
+            return new FileInfo(path).Length;
         }
     }
 }
