@@ -109,7 +109,7 @@ namespace Ba2Repacker
 
         private async Task<IArchive> getBa2State(string someBa2name)
         {
-            var wabbaPath = AbsolutePath.ConvertNoFailure(Path.Combine(dataFolder, someBa2name));
+            var wabbaPath = AbsolutePath.ConvertNoFailure(fsWrapper.CombinePath(dataFolder, someBa2name));
             var reader = BSADispatch.Open(wabbaPath);
             var wat = await reader;
 
