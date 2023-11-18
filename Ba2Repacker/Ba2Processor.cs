@@ -4,6 +4,8 @@ using Mutagen.Bethesda.FormKeys.Fallout4;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Synthesis;
 using Noggog;
+using System.Diagnostics;
+using System.Reflection;
 using System.Text.RegularExpressions;
 
 namespace Ba2Repacker
@@ -37,7 +39,7 @@ namespace Ba2Repacker
                 this.modKey = modKey;
             }
 
-            public string getMainBa2Name()
+            public readonly string GetMainBa2Name()
             {
                 if (mainArchives.Count == 0)
                 {
@@ -47,7 +49,7 @@ namespace Ba2Repacker
                 return mainArchives.First();
             }
 
-            public string getTextureBa2Name()
+            public readonly string GetTextureBa2Name()
             {
                 if (textureArchives.Count == 0)
                 {
@@ -57,16 +59,16 @@ namespace Ba2Repacker
                 return textureArchives.First();
             }
 
-            public bool countsAsMaster()
+            public readonly bool CountsAsMaster()
             {
                 var lowerExt = modKey.FileName.Extension.ToLower();
                 return isMaster || lowerExt == ".esl" || lowerExt == ".esm";
             }
 
-            public int getNumFiles(bool includeTextures = false)
+            public readonly int GetNumFiles(bool includeTextures = false)
             {
                 int result = 0;
-                if (countsAsMaster())
+                if (CountsAsMaster())
                 {
                     // count self
                     result += 1;
@@ -81,9 +83,12 @@ namespace Ba2Repacker
             }
         }
 
-        private Ba2RepackProcessor repacker;
+        private readonly Ba2RepackProcessor repacker;
 
-        private static HashSet<ModKey> vanillaMods = new()
+        private const string MO2_DLL_x64 = "usvfs_x64.dll";
+        private const string MO2_DLL_x86 = "usvfs_x86.dll";
+
+        private static readonly HashSet<ModKey> vanillaMods = new()
         {
             Fallout4.ModKey,
             Robot.ModKey,
@@ -96,12 +101,12 @@ namespace Ba2Repacker
 
         private readonly IPatcherState<IFallout4Mod, IFallout4ModGetter> state;
         private readonly Settings cfg;
-        private List<string> ccModNames = new();
-        private List<string> allBa2Names = new();
+        private readonly List<string> ccModNames = new();
+        private readonly List<string> allBa2Names = new();
 
         // private string disabledPath;
-        private string combinedMainArchive;
-        private string combinedTextureArchive;
+        private readonly string combinedMainArchive;
+        private readonly string combinedTextureArchive;
 
         private readonly IFileSystem fsWrapper;
         private static readonly Regex MATCH_TEXTURE_NAME = new(@" - Textures[0-9]*\.ba2$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
@@ -119,25 +124,57 @@ namespace Ba2Repacker
             // disabledPath = Path.Combine(state.DataFolderPath, cfg.disabledDir);
 
             var tempPath = Path.Combine(Path.GetTempPath(), "BA2_Repacker_temp");
-
-            if (cfg.mo2Settings.EnableMO2Mode)
-            {
-                fsWrapper = new MO2FileSystem(state.DataFolderPath, cfg.mo2Settings);
-                //fsWrapper.CopyFile("F:\\SteamSSD\\steamapps\\common\\Fallout 4\\data\\meh\\testFile.txt", "F:\\SteamSSD\\steamapps\\common\\Fallout 4\\data\\meh\\testFile.foo.txt");
-            }
-            else
-            {
-                fsWrapper = new RealFileSystem();
-            }
+            fsWrapper = CreateFileSystem();
 
             repacker = new(state.DataFolderPath, cfg.disabledSuffix, fsWrapper, tempPath);
+        }
+
+        private IFileSystem CreateFileSystem()
+        {
+            if(!cfg.mo2Settings.useAutoMO2mode)
+            {
+                Console.WriteLine(string.Format("MO2 mode disabled per settings"));
+                return new RealFileSystem();
+            }
+
+            var mo2Path = GetMO2Path();
+            if(mo2Path == "")
+            {
+                Console.WriteLine(string.Format("No MO2 detected"));
+                return new RealFileSystem();
+            }
+
+            Console.WriteLine(string.Format("Detected MO2 run from "+mo2Path));
+            
+            return new MO2FileSystem(mo2Path, state.DataFolderPath, cfg.mo2Settings);
+        }
+
+        private static string GetMO2Path()
+        {
+            var proc = System.Diagnostics.Process.GetCurrentProcess();
+            foreach (ProcessModule module in proc.Modules)
+            {
+                
+                var procFileName = module.FileName;
+                if(procFileName == null)
+                {
+                    continue;
+                }
+                    var curFile = Path.GetFileName(procFileName);
+                if (curFile == MO2_DLL_x64 || curFile == MO2_DLL_x86)
+                {
+                    return Path.GetDirectoryName(procFileName) ?? "";
+                }
+            }
+
+            return "";
         }
 
         public void Process()
         {
             RestoreInitialState();
-            loadExistingBa2s();
-            loadCCCfile();
+            LoadExistingBa2s();
+            LoadCCCfile();
             // var patchFileName = state.PatchMod.ModKey.FileName.String;
             int numMainFiles = 0;
             int numTextureFiles = 0;
@@ -150,7 +187,7 @@ namespace Ba2Repacker
                 if (curMod != null)
                 {
                     var curFileInfo = GetFileInfo(curMod);
-                    numMainFiles += curFileInfo.getNumFiles(false);
+                    numMainFiles += curFileInfo.GetNumFiles(false);
                     numTextureFiles += curFileInfo.textureArchives.Count;
                     //Console.WriteLine("File "+key+" has "+ numMainFiles+" main files");
 
@@ -183,12 +220,7 @@ namespace Ba2Repacker
 
             Console.WriteLine("Main files: " + numMainFiles + ", Texture Files: " + numTextureFiles);
             Console.WriteLine("We have " + (eligibleMods.Count) + " eligible mods");
-            /*
-            foreach(var m in eligibleMods)
-            {
-                Console.WriteLine(" "+m.getMainBa2Name());
-            }
-            */
+
 
             var mainTooMany = numMainFiles - cfg.Ba2Limit;
             var texTooMany = numTextureFiles - cfg.TextureLimit;
@@ -206,7 +238,7 @@ namespace Ba2Repacker
                 if (list.Count > 1)
                 {
                     Console.WriteLine("Repacking a new MAIN BA2");
-                    var task = repacker.repackByList(extractFileNames(list), combinedMainArchive, cancelToken);
+                    var task = repacker.RepackByList(extractFileNames(list), combinedMainArchive, cancelToken);
                     tasks.Add(task);
                 }
             }
@@ -217,7 +249,7 @@ namespace Ba2Repacker
                 if (list.Count > 1)
                 {
                     Console.WriteLine("Repacking a new TEXTURES BA2");
-                    var task = repacker.repackByList(extractFileNames(list), combinedTextureArchive, cancelToken);
+                    var task = repacker.RepackByList(extractFileNames(list), combinedTextureArchive, cancelToken);
                     tasks.Add(task);
                 }
             }
@@ -278,7 +310,7 @@ namespace Ba2Repacker
             List<FileNameAndSize> result = new();
             foreach (var entry in list)
             {
-                var mainBa2 = entry.getMainBa2Name();
+                var mainBa2 = entry.GetMainBa2Name();
                 if (mainBa2 == "")
                 {
                     Console.WriteLine("Skipping " + entry.modKey + " because no Main BA2");
@@ -289,7 +321,7 @@ namespace Ba2Repacker
                 var data = new FileNameAndSize
                 {
                     fileName = mainBa2,
-                    fileSize = fsWrapper.GetFileSize(fullPath),//new System.IO.FileInfo(fullPath).Length,
+                    fileSize = fsWrapper.GetFileSize(fullPath),
                     loadOrder = getLoadOrderIndex(entry.modKey)
                 };
                 if (data.fileSize <= cfg.MaxFileSize * 1000000)
@@ -310,7 +342,7 @@ namespace Ba2Repacker
             List<FileNameAndSize> result = new();
             foreach (var entry in list)
             {
-                var textureBa2 = entry.getTextureBa2Name();
+                var textureBa2 = entry.GetTextureBa2Name();
                 if (textureBa2 == "")
                 {
                     continue;
@@ -337,8 +369,8 @@ namespace Ba2Repacker
             ModKey key = modGetter.ModKey;
             GenericFileInfo result = new(key)
             {
-                isVanilla = isVanillaFile(key),
-                isCC = isCCMod(key),
+                isVanilla = IsVanillaFile(key),
+                isCC = IsCCMod(key),
                 isMaster = modGetter.ModHeader.Flags.HasFlag(Fallout4ModHeader.HeaderFlag.Master),
                 isLight = modGetter.ModHeader.Flags.HasFlag(Fallout4ModHeader.HeaderFlag.LightMaster)
             };
@@ -443,7 +475,7 @@ namespace Ba2Repacker
             }
         }
 
-        private void loadExistingBa2s()
+        private void LoadExistingBa2s()
         {
             //string[] allFiles = Directory.GetFiles(state.DataFolderPath, "*.ba2", SearchOption.TopDirectoryOnly);
             var allFiles = fsWrapper.GetDirectoryFiles(state.DataFolderPath, "*.ba2", SearchOption.TopDirectoryOnly);
@@ -454,7 +486,7 @@ namespace Ba2Repacker
             //allBa2Names.AddRange(allFiles);
         }
 
-        private void loadCCCfile()
+        private void LoadCCCfile()
         {
             var fullPath = Path.Combine(state.DataFolderPath, "..\\Fallout4.ccc");
             if (!fsWrapper.FileExists(fullPath))
@@ -463,67 +495,16 @@ namespace Ba2Repacker
             }
 
             var lines = File.ReadAllLines(fullPath);
-            /*
-            foreach(var line in lines)
-            {
-                ccModNames.Add(line);
-            }
-            */
+
             ccModNames.AddRange(lines);
         }
-        /*
-        private bool hasMainBa2(ModKey mod)
-        {
-            string baseName = Path.GetFileNameWithoutExtension(mod.FileName);
-
-            var fullPath = Path.Combine(state.DataFolderPath, baseName + " - Main.ba2");
-            return fsWrapper.FileExists(fullPath);
-        }*/
-        /*
-        private int getNumStreamingFiles(ModKey mod)
-        {
-            int result = 0;
-            // hack
-            if (mod == Fallout4.ModKey)
-            {
-                result = 10; // the extra files which Fallout.esm pulls
-            }
-            // also pull  - Voices_XX.ba2
-            string fileName = mod.FileName;
-            string baseName = Path.GetFileNameWithoutExtension(fileName);
-
-            // foo - Main.ba2
-            if (hasFile(baseName + " - Main.ba2"))
-            {
-                result++;
-            }
-            // foo - Geometry.csg
-            if (hasFile(baseName + " - Geometry.csg"))
-            {
-                result++;
-            }
-            // foo.cdx
-            if (hasFile(baseName + ".cdx"))
-            {
-                result++;
-            }
-
-            return result;
-        }
-        */
-        /*
-        private bool hasFile(string fileName)
-        {
-            var fullPath = Path.Combine(state.DataFolderPath, fileName);
-            return fsWrapper.FileExists(fullPath);
-        }
-        */
-        private bool isVanillaFile(ModKey mod)
+        
+        private static bool IsVanillaFile(ModKey mod)
         {
             return (vanillaMods.Contains(mod));
         }
 
-        private bool isCCMod(ModKey mod)
+        private bool IsCCMod(ModKey mod)
         {
             if (ccModNames.Count == 0)
             {

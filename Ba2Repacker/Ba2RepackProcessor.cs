@@ -10,11 +10,11 @@ namespace Ba2Repacker
     {
         protected readonly TemporaryFileManager _manager;
 
-        private string dataFolder;
+        private readonly string dataFolder;
 
-        private string disabledSuffix;
+        private readonly string disabledSuffix;
 
-        private IFileSystem fsWrapper;
+        private readonly IFileSystem fsWrapper;
 
         public Ba2RepackProcessor(string dataFolder, string disabledSuffix, IFileSystem fsWrapper, string tempPath)
         {
@@ -26,7 +26,7 @@ namespace Ba2Repacker
             this.fsWrapper = fsWrapper;
         }
 
-        public async Task repackByList(List<String> list, string archiveName, CancellationToken token)
+        public async Task RepackByList(List<String> list, string archiveName, CancellationToken token)
         {
             if (list.Count <= 1)
             {
@@ -37,7 +37,7 @@ namespace Ba2Repacker
 
             var firstPrevBa2 = list.First();
             // Wabbajack doesn't seem to provide a way to create the "state" anew, so, stealing it from the first BA2 we got
-            var state = await getBa2State(firstPrevBa2);
+            var state = await GetBa2State(firstPrevBa2);
 
             var path = fsWrapper.CombinePath(dataFolder, archiveName);
 
@@ -45,7 +45,6 @@ namespace Ba2Repacker
             {
                 // delete it
                 fsWrapper.DeleteFile(path);
-                // list.Prepend(baseName);
             }
 
             await using var writer = BSADispatch.CreateBuilder(state, _manager);
@@ -91,7 +90,7 @@ namespace Ba2Repacker
                 await writer.Build(outStream, token);
             }
 
-            // move the fileNames to the bin
+
             // disabledFullPath
             foreach (var fileName in list)
             {
@@ -100,14 +99,13 @@ namespace Ba2Repacker
                     return;
                 }
                 var fullSrcPath = fsWrapper.CombinePath(dataFolder, fileName);
-                var fullDstPath = fullSrcPath + disabledSuffix;//Path.Combine(disabledFullPath, fileName);
-                // File.Ren
+                var fullDstPath = fullSrcPath + disabledSuffix;
 
                 fsWrapper.RenameFile(fullSrcPath, fullDstPath, true); // there shouldn't be anything to overwrite, but, just in case
             }
         }
 
-        private async Task<IArchive> getBa2State(string someBa2name)
+        private async Task<IArchive> GetBa2State(string someBa2name)
         {
             var wabbaPath = AbsolutePath.ConvertNoFailure(fsWrapper.CombinePath(dataFolder, someBa2name));
             var reader = BSADispatch.Open(wabbaPath);
