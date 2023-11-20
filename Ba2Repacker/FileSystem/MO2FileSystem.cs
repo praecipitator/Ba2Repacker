@@ -226,7 +226,22 @@ namespace Ba2Repacker.FileSystem
                 throw new FileNotFoundException("Failed to find MO2's configuration file", mainIni);
             }
 
-            LoadMO2ini(mainIni);
+            var mainIniReader = new IniReader(mainIni);
+
+            var gameName = mainIniReader.GetValue("General", "gameName");
+            if (gameName != "Fallout 4")
+            {
+                throw new InvalidDataException("Cannot use " + mainIni + ": this patcher only supports Fallout 4, gameName = " + gameName);
+            }
+
+            mo2BaseDirectory = NormalizePath(mainIniReader.GetValueMO2("Settings", "base_directory", mo2Path));// for portable mode, this defaults to MO2 dir
+
+            if (mo2BaseDirectory == "" || !Directory.Exists(mo2BaseDirectory))
+            {
+                throw new FileNotFoundException("MO2's base directory dir is not set or doesn't exist", mo2BaseDirectory);
+            }
+
+            LoadMO2ini(mainIniReader);
         }
 
         private void BootstrapAppData()
@@ -245,11 +260,27 @@ namespace Ba2Repacker.FileSystem
                 throw new FileNotFoundException("Failed to find MO2's configuration file for Fallout 4", mainIni);
             }
 
-            LoadMO2ini(mainIni);
+            var mainIniReader = new IniReader(mainIni);
+
+            var gameName = mainIniReader.GetValue("General", "gameName");
+            if (gameName != "Fallout 4")
+            {
+                throw new InvalidDataException("Cannot use " + mainIni + ": this patcher only supports Fallout 4, gameName = " + gameName);
+            }
+
+            mo2BaseDirectory = NormalizePath(mainIniReader.GetValueMO2("Settings", "base_directory"));// for portable mode, this defaults to MO2 dir
+
+            if (mo2BaseDirectory == "" || !Directory.Exists(mo2BaseDirectory))
+            {
+                throw new FileNotFoundException("MO2's base directory dir is not set or doesn't exist", mo2BaseDirectory);
+            }
+
+            LoadMO2ini(mainIniReader);
         }
 
-        private void LoadMO2ini(string mainIniPath)
+        private void LoadMO2ini(IniReader mainIniReader)
         {
+            /*
             var mainIniReader = new IniReader(mainIniPath);
 
             var gameName = mainIniReader.GetValue("General", "gameName");
@@ -258,13 +289,13 @@ namespace Ba2Repacker.FileSystem
                 throw new InvalidDataException("Cannot use "+mainIniPath+": this patcher only supports Fallout 4, gameName = "+gameName);
             }
 
-            mo2BaseDirectory = NormalizePath(mainIniReader.GetValueMO2("Settings", "base_directory"));
+            mo2BaseDirectory = NormalizePath(mainIniReader.GetValueMO2("Settings", "base_directory"));// for portable mode, this defaults to MO2 dir
 
             if (mo2BaseDirectory == "" || !Directory.Exists(mo2BaseDirectory))
             {
                 throw new FileNotFoundException("MO2's Fallout 4 dir is not set or doesn't exist", mo2BaseDirectory);
             }
-
+            */
             mo2ModsDirectory = NormalizePath(mainIniReader.GetValueMO2("Settings", "mod_directory", "%BASE_DIR%/mods"));
             mo2ModsDirectory = mo2ModsDirectory.Replace("%BASE_DIR%", mo2BaseDirectory);
             if (mo2ModsDirectory == "" || !Directory.Exists(mo2ModsDirectory))
