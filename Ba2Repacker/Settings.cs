@@ -7,10 +7,6 @@ namespace Ba2Repacker
     internal class Settings
     {
         [SynthesisOrder]
-        [SynthesisSettingName("MO2 Settings")]
-        public Section_MO2Settings mo2Settings = new();
-
-        [SynthesisOrder]
         [SynthesisSettingName("Main BA2 Limit")]
         [SynthesisTooltip("Main BA2 repacking will happen if you have more main BA2s, master files, and cdx/csg files than this.")]
         public int Ba2Limit = 400;
@@ -49,6 +45,15 @@ namespace Ba2Repacker
         [SynthesisSettingName("Disabled BA2 suffix")]
         [SynthesisTooltip("This will be appended to the filename of a BA2 which has been repacked")]
         public string disabledSuffix = ".repacked";
+
+
+        [SynthesisOrder]
+        [SynthesisSettingName("MO2 Settings")]
+        public Section_MO2Settings mo2Settings = new();
+
+        [SynthesisOrder]
+        [SynthesisSettingName("Debug Settings")]
+        public Section_DebugSettings debugSettings = new();
     }
 
     internal class Section_MO2Settings
@@ -62,5 +67,14 @@ namespace Ba2Repacker
         [SynthesisSettingName("Override MO2 Profile Name")]
         [SynthesisTooltip("If filled out, the patcher will attempt to use this profile, instead of selected_profile from the INI")]
         public string profileOverride = "";
+    }
+
+
+    internal class Section_DebugSettings
+    {
+        [SynthesisOrder]
+        [SynthesisSettingName("Increase Verbosity")]
+        [SynthesisTooltip("If enabled, more output will be generated")]
+        public bool verboseMode = true;
     }
 }
