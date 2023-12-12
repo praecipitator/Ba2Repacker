@@ -13,15 +13,6 @@ This gets reversed before the next run.
 Vanilla files are NEVER repacked. For CreationClub mods, this can be enabled via the settings.
 
 ## Settings
-### MO2 Settings:
-#### Enable MO2 Mode: 
-The patcher will attempt to make sure that repacked BA2s stay within the proper MO2 mod subfolder.
-Otherwise, they will all end up in Overwrite.
-For this to work, your MO2 must have a config directory in Appdata.
-
-#### Override MO2 Profile Name:
-If left empty, the patcher will try to read the current MO2 profile from the config files.
-Otherwise, this profile will be used
 
 ### Main BA2 Limit:
 The patcher will add up all currently installed non-texture BA2s, master files, ESLs, as well as CDX and CSG files.
@@ -45,3 +36,14 @@ Keep in mind that vanilla files are NEVER repacked, no matter the lists, and the
 
 ### Disabled BA2 suffix
 When a BA2 was used for repacking, this will be added to it's filename.
+
+### MO2 Settings:
+#### Use MO2 mode, if possible:
+If enabled, the patcher will try to detect whenever it is being run through MO2, and switch to MO2 mode if necessary.
+MO2 mode means, the patcher will attempt to make sure that repacked BA2s stay within the proper MO2 mod subfolder,
+otherwise, they will all end up in Overwrite.
+This should now work with both regular and portable installations.
+
+#### Override MO2 Profile Name:
+If left empty, the patcher will try to read the current selected MO2 profile from the config files.
+Otherwise, this profile will be used instead.

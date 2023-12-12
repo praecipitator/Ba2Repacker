@@ -3,25 +3,9 @@ using Mutagen.Bethesda.Synthesis.Settings;
 
 namespace Ba2Repacker
 {
-    internal class Section_MO2Settings
-    {
-        [SynthesisOrder]
-        [SynthesisSettingName("Enable MO2 Mode")]
-        [SynthesisTooltip("The patcher will attempt to find your current MO2 profile, and keep the disabled BA2 files within the corresponding mod directories")]
-        public bool EnableMO2Mode = false;
-
-        [SynthesisOrder]
-        [SynthesisSettingName("Override MO2 Profile Name")]
-        [SynthesisTooltip("If filled out, the patcher will attempt to use this profile, instead of ")]
-        public string profileOverride = "";
-    }
 
     internal class Settings
     {
-        [SynthesisOrder]
-        [SynthesisSettingName("MO2 Settings")]
-        public Section_MO2Settings mo2Settings = new();
-
         [SynthesisOrder]
         [SynthesisSettingName("Main BA2 Limit")]
         [SynthesisTooltip("Main BA2 repacking will happen if you have more main BA2s, master files, and cdx/csg files than this.")]
@@ -61,5 +45,36 @@ namespace Ba2Repacker
         [SynthesisSettingName("Disabled BA2 suffix")]
         [SynthesisTooltip("This will be appended to the filename of a BA2 which has been repacked")]
         public string disabledSuffix = ".repacked";
+
+
+        [SynthesisOrder]
+        [SynthesisSettingName("MO2 Settings")]
+        public Section_MO2Settings mo2Settings = new();
+
+        [SynthesisOrder]
+        [SynthesisSettingName("Debug Settings")]
+        public Section_DebugSettings debugSettings = new();
+    }
+
+    internal class Section_MO2Settings
+    {
+        [SynthesisOrder]
+        [SynthesisSettingName("Use MO2 mode, if possible")]
+        [SynthesisTooltip("If enabled, the patcher will try to detect whenever it is being run through MO2, and switch to MO2 mode if necessary.")]
+        public bool useAutoMO2mode = true;
+
+        [SynthesisOrder]
+        [SynthesisSettingName("Override MO2 Profile Name")]
+        [SynthesisTooltip("If filled out, the patcher will attempt to use this profile, instead of selected_profile from the INI")]
+        public string profileOverride = "";
+    }
+
+
+    internal class Section_DebugSettings
+    {
+        [SynthesisOrder]
+        [SynthesisSettingName("Increase Verbosity")]
+        [SynthesisTooltip("If enabled, more output will be generated")]
+        public bool verboseMode = true;
     }
 }

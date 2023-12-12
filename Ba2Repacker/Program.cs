@@ -7,7 +7,7 @@ namespace Ba2Repacker
     public class Program
     {
         private static Lazy<Settings> _lazySettings = null!;
-        private static Settings cfg => _lazySettings.Value;
+        private static Settings PatcherSettings => _lazySettings.Value;
 
         public static async Task<int> Main(string[] args)
         {
@@ -23,7 +23,7 @@ namespace Ba2Repacker
 
         public static void RunPatch(IPatcherState<IFallout4Mod, IFallout4ModGetter> state)
         {
-            var processor = new Ba2Processor(state, cfg);
+            var processor = new Ba2Processor(state, PatcherSettings);
             processor.Process();
         }
     }
