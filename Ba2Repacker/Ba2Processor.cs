@@ -187,16 +187,24 @@ namespace Ba2Repacker
                     var curFileInfo = GetFileInfo(curMod);
                     numMainFiles += curFileInfo.GetNumFiles(false);
                     numTextureFiles += curFileInfo.textureArchives.Count;
-                    //Console.WriteLine("File "+key+" has "+ numMainFiles+" main files");
 
                     if (curFileInfo.isVanilla)
                     {
                         continue;
                     }
 
-                    if (cfg.skipCCmods && curFileInfo.isCC)
+                    if(curFileInfo.isCC) // this is a CC mod
                     {
-                        continue;
+                        // what do we do with CC mods?
+                        switch(cfg.ccModsSetting)
+                        {
+                            case InclusionMode.Never:// never include CC mods
+                                continue;
+                            case InclusionMode.Always:
+                                eligibleMods.Add(curFileInfo);// always include CC mods
+                                continue;
+                            // otherwise, go on and check black/whitelist as with other mods
+                        }
                     }
 
                     if (cfg.whitelistMode)
