@@ -22,9 +22,10 @@ namespace Ba2Repacker
         public int MaxFileSize = 100;
 
         [SynthesisOrder]
-        [SynthesisSettingName("Exclude CreationClub Mods")]
-        [SynthesisTooltip("Exclude Bethesda's CC mods, even if they would be included otherwise. Because a Steam file revalidation will bring these BA2s back.")]
-        public bool skipCCmods = true;
+        [SynthesisSettingName("Repack CreationClub Mods")]
+        [SynthesisTooltip("If set to Manual, CC mods are treated just like regular mods, and can be white- or blacklisted. Always and Never will either include or exclude them all at once, overriding the lists.")]
+        [SynthesisStaticEnumDictionary]
+        public InclusionMode ccModsSetting = InclusionMode.Manual;
 
         [SynthesisOrder]
         [SynthesisSettingName("Whitelist Mode")]
@@ -76,5 +77,12 @@ namespace Ba2Repacker
         [SynthesisSettingName("Increase Verbosity")]
         [SynthesisTooltip("If enabled, more output will be generated")]
         public bool verboseMode = true;
+    }
+
+    internal enum InclusionMode
+    {
+        Always,
+        Never,
+        Manual
     }
 }
