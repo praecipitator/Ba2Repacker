@@ -366,7 +366,7 @@ namespace Ba2Repacker
                 isVanilla = IsVanillaFile(key),
                 isCC = IsCCMod(key),
                 isMaster = modGetter.ModHeader.Flags.HasFlag(Fallout4ModHeader.HeaderFlag.Master),
-                isLight = modGetter.ModHeader.Flags.HasFlag(Fallout4ModHeader.HeaderFlag.Light)
+                isLight = modGetter.ModHeader.Flags.HasFlag(Fallout4ModHeader.HeaderFlag.LightMaster)
             };
 
             string baseName = Path.GetFileNameWithoutExtension(key.FileName);
