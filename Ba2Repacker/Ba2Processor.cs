@@ -316,7 +316,7 @@ namespace Ba2Repacker
 
         private List<FileNameAndSize> GetArchiveList(List<GenericFileInfo> list, bool mainArchives)
         {
-            List<FileNameAndSize> result = [];
+            List<FileNameAndSize> result = new();
             foreach (var entry in list)
             {
                 string? mainBa2;
@@ -366,7 +366,7 @@ namespace Ba2Repacker
                 isVanilla = IsVanillaFile(key),
                 isCC = IsCCMod(key),
                 isMaster = modGetter.ModHeader.Flags.HasFlag(Fallout4ModHeader.HeaderFlag.Master),
-                isLight = modGetter.ModHeader.Flags.HasFlag(Fallout4ModHeader.HeaderFlag.LightMaster)
+                isLight = modGetter.ModHeader.Flags.HasFlag(Fallout4ModHeader.HeaderFlag.Light)
             };
 
             string baseName = Path.GetFileNameWithoutExtension(key.FileName);
