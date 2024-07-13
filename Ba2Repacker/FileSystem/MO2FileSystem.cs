@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using Mutagen.Bethesda.Plugins;
 using System.IO;
 using System.Text;
+using Microsoft.Win32;
 
 namespace Ba2Repacker.FileSystem
 {
@@ -17,6 +18,7 @@ namespace Ba2Repacker.FileSystem
 
         private readonly Section_MO2Settings cfg;
 
+        // "%BASE_DIR%" from the settings
         private string mo2BaseDirectory = "";
         private string mo2ProfileDirectory = "";
         private string mo2ModsDirectory = "";
@@ -205,18 +207,98 @@ namespace Ba2Repacker.FileSystem
                 throw new FileNotFoundException("MO2's path doesn't actually exist? This shouldn't happen", mo2Path);
             }
 
+            // here are the rules which I am going to do now:
+            /*
+             * - if we have an ini override, use that, no questions asked.
+             * - if we have a portable.txt in mo2path, assume portable.
+             * - otherwise:
+             *  - check if HKEY_CURRENT_USER\Software\Mod Organizer Team\Mod Organizer\CurrentInstance a) exists and b) is not emptystring
+             *      - if yes, we are in APPDATA mode
+             *      - if not, we are in portable mode
+             */
+
+            // first, the override setting
+            if (cfg.iniOverride != "")
+            {
+                // just do it, no matter what
+                Console.WriteLine("Reading settings from overridden INI " + cfg.iniOverride);
+                BootstrapGeneric(cfg.iniOverride, mo2Path);
+                return;
+            }
+
             // are we portable?
-            if(File.Exists(Path.Combine(mo2Path, "portable.txt")))
+            if (File.Exists(Path.Combine(mo2Path, "portable.txt")))
             {
-                Console.WriteLine("Reading settings from portable MO2");
+                Console.WriteLine("Reading settings from portable MO2, forced through portable.txt");
                 BootstrapPortable();
+                return;
             }
-            else
+
+            // now, this
+            if(HasMo2RegistryEntry())
             {
-                Console.WriteLine("Reading settings from MO2's AppData folder");
+                // assume we are non-portable
+                Console.WriteLine("Reading settings from MO2's global AppData folder");
                 BootstrapAppData();
+                return;
             }
+
+
+            // finally, just assume we are portable
+            Console.WriteLine("Reading settings from portable MO2");
+            BootstrapPortable();
         }
+
+        private static bool HasMo2RegistryEntry()
+        {
+            try
+            {
+                using RegistryKey? key = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Mod Organizer Team\\Mod Organizer");
+                if (key != null)
+                {
+                    Object? o = key.GetValue("CurrentInstance");
+                    if (o is String currentInstanceName)
+                    {
+                        return currentInstanceName != "";
+                    }
+                }
+            }
+            catch (Exception)  //just for demonstration...it's always best to handle specific exceptions
+            {
+                return false;
+            }
+            return false;
+        }
+
+
+        /// <summary>
+        /// bootstraps the MO2 filesystem from a path to a ModOrganizer.ini
+        /// 
+        /// </summary>
+        /// <param name="mainIniPath"></param>
+        /// <param name="baseDirFallback"></param>
+        /// <exception cref="InvalidDataException"></exception>
+        /// <exception cref="FileNotFoundException"></exception>
+        private void BootstrapGeneric(string mainIniPath, string baseDirFallback = "")
+        {
+            var mainIniReader = new IniReader(mainIniPath);
+
+            var gameName = mainIniReader.GetValue("General", "gameName");
+            if (gameName != "Fallout 4")
+            {
+                throw new InvalidDataException("Cannot use " + mainIniPath + ": this patcher only supports Fallout 4, gameName = " + gameName);
+            }
+
+            mo2BaseDirectory = NormalizePath(mainIniReader.GetValueMO2("Settings", "base_directory", baseDirFallback));// for portable mode, this defaults to MO2 dir
+
+            if (mo2BaseDirectory == "" || !Directory.Exists(mo2BaseDirectory))
+            {
+                throw new FileNotFoundException("MO2's base directory dir is not set or doesn't exist", mo2BaseDirectory);
+            }
+
+            LoadMO2ini(mainIniReader);
+        }
+
         private void BootstrapPortable()
         {
             // here, we start with ModOrganizer.ini
@@ -226,22 +308,7 @@ namespace Ba2Repacker.FileSystem
                 throw new FileNotFoundException("Failed to find MO2's configuration file", mainIni);
             }
 
-            var mainIniReader = new IniReader(mainIni);
-
-            var gameName = mainIniReader.GetValue("General", "gameName");
-            if (gameName != "Fallout 4")
-            {
-                throw new InvalidDataException("Cannot use " + mainIni + ": this patcher only supports Fallout 4, gameName = " + gameName);
-            }
-
-            mo2BaseDirectory = NormalizePath(mainIniReader.GetValueMO2("Settings", "base_directory", mo2Path));// for portable mode, this defaults to MO2 dir
-
-            if (mo2BaseDirectory == "" || !Directory.Exists(mo2BaseDirectory))
-            {
-                throw new FileNotFoundException("MO2's base directory dir is not set or doesn't exist", mo2BaseDirectory);
-            }
-
-            LoadMO2ini(mainIniReader);
+            BootstrapGeneric(mainIni, mo2Path);
         }
 
         private void BootstrapAppData()
@@ -260,22 +327,7 @@ namespace Ba2Repacker.FileSystem
                 throw new FileNotFoundException("Failed to find MO2's configuration file for Fallout 4", mainIni);
             }
 
-            var mainIniReader = new IniReader(mainIni);
-
-            var gameName = mainIniReader.GetValue("General", "gameName");
-            if (gameName != "Fallout 4")
-            {
-                throw new InvalidDataException("Cannot use " + mainIni + ": this patcher only supports Fallout 4, gameName = " + gameName);
-            }
-
-            mo2BaseDirectory = NormalizePath(mainIniReader.GetValueMO2("Settings", "base_directory"));// for portable mode, this defaults to MO2 dir
-
-            if (mo2BaseDirectory == "" || !Directory.Exists(mo2BaseDirectory))
-            {
-                throw new FileNotFoundException("MO2's base directory dir is not set or doesn't exist", mo2BaseDirectory);
-            }
-
-            LoadMO2ini(mainIniReader);
+            BootstrapGeneric(mainIni);
         }
 
         private void LoadMO2ini(IniReader mainIniReader)

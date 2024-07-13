@@ -68,6 +68,11 @@ namespace Ba2Repacker
         [SynthesisSettingName("Override MO2 Profile Name")]
         [SynthesisTooltip("If filled out, the patcher will attempt to use this profile, instead of selected_profile from the INI")]
         public string profileOverride = "";
+
+        [SynthesisOrder]
+        [SynthesisSettingName("Override ModOrganizer.ini path")]
+        [SynthesisTooltip("A full path to a ModOrganizer.ini file. If filled out, this ini file will be used instead of the default auto-discover logic.")]
+        public string iniOverride = "";
     }
 
 

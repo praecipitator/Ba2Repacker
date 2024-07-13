@@ -1,9 +1,5 @@
 This is a [Mutagen](https://github.com/Mutagen-Modding/Mutagen)-based autopatcher for Fallout 4, intended for use with [Synthesis](https://github.com/Mutagen-Modding/Synthesis).
 
-# WARNING: 
-This patcher is a beta at best. Expect bugs up to and including loss of BA2 files!
-Use at your own risk!
-
 # Description
 Combines several smaller BA2s into one large one, as a workaround for the BA2 limit.
 BA2s get chosen for repacking by file size (smallest first). 
@@ -47,3 +43,8 @@ This should now work with both regular and portable installations.
 #### Override MO2 Profile Name:
 If left empty, the patcher will try to read the current selected MO2 profile from the config files.
 Otherwise, this profile will be used instead.
+
+
+## Disclaimer: 
+This patcher seems to have worked fine so far, but, due to the way it works, bugs might affect the archives of your installed mods.
+Use at your own risk.

@@ -307,7 +307,7 @@ namespace Ba2Repacker
         /// <param name="inList"></param>
         /// <param name="count"></param>
         /// <returns></returns>
-        private List<FileNameAndSize> SortAndLimit(List<FileNameAndSize> inList, int count)
+        private static List<FileNameAndSize> SortAndLimit(List<FileNameAndSize> inList, int count)
         {
             var preSorted = SortBySizeAndLimit(inList, count);
 
@@ -316,7 +316,7 @@ namespace Ba2Repacker
 
         private List<FileNameAndSize> GetArchiveList(List<GenericFileInfo> list, bool mainArchives)
         {
-            List<FileNameAndSize> result = new();
+            List<FileNameAndSize> result = [];
             foreach (var entry in list)
             {
                 string? mainBa2;
