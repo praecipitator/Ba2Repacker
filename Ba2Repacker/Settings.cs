@@ -18,7 +18,7 @@ namespace Ba2Repacker
 
         [SynthesisOrder]
         [SynthesisSettingName("Maximal Filesize (MB)")]
-        [SynthesisTooltip("Never repack BA2s larger than this")]
+        [SynthesisTooltip("Never repack BA2s larger than this.")]
         public int MaxFileSize = 100;
 
         [SynthesisOrder]

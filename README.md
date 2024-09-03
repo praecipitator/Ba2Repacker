@@ -19,19 +19,25 @@ Texture BA2s seem to have a different limit, and causes visual issues in-game, i
 For this limit, only the Texture BA2s are counted and must be below the configured number.
 
 ### Maximal Filesize (MB):
-BA2s above this size will never be repacked
+BA2s above this size will never be repacked.
 
-### Exclude CreationClub Mods:
-CC mods can have their BA2s restored, when you revalidate files via Steam. For this reason, they are excluded by default.
-Disabling this option will allow the patcher to repack them as well.
+### Repack CreationClub Mods:
+This has three options: "Always", "Never", "Manual" (default).
+"Manual" means, CC mods aren't being treated different from any other mods, and will follow black- or whitelist rules.
+"Always" and "Never" set CC mods to be either always or never repackable respectively, overriding any black- or whitelisting.
+Keep in mind that CC mods can have their BA2s restored, when you revalidate files via Steam. You would need to run the Synthesis pipeline again after that.
+
 
 ### Whitelist Mode
-In whitelist mode, only mods specified below can have their BA2s repacked, and nothing else.
+In whitelist mode, only mods specified in the whitelist can have their BA2s repacked, and nothing else.
 Otherwise, all mods except the ones specified in the blacklist below are.
-Keep in mind that vanilla files are NEVER repacked, no matter the lists, and the setting "Exclude CreationClub Mods" trumps whitelisting.
+Keep in mind that vanilla files are NEVER repacked, no matter the lists, and the settings "Always" or "Never" of the option "Repack CreationClub Mods"
+will override any black- or whitelisting.
 
 ### Disabled BA2 suffix
-When a BA2 was used for repacking, this will be added to it's filename.
+When a BA2 was used for repacking, this will be added to it's filename. Keep in mind that the patcher also uses this suffix to find repacked BA2s when restoring them,
+so only change it if you are know what you're doing!
+Default: ".repacked"
 
 ### MO2 Settings:
 #### Use MO2 mode, if possible:
@@ -42,7 +48,12 @@ This should now work with both regular and portable installations.
 
 #### Override MO2 Profile Name:
 If left empty, the patcher will try to read the current selected MO2 profile from the config files.
-Otherwise, this profile will be used instead.
+Otherwise, the currently-used profile will be used ("selected_profile" in the current ModOrganizer.ini).
+
+
+#### Override ModOrganizer.ini path:
+If the automatic MO2 detection isn't working for you, you can specify a full path to your ModOrganizer.ini file here.
+
 
 
 ## Disclaimer: 
