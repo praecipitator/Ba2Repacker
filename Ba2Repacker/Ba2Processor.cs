@@ -26,7 +26,7 @@ namespace Ba2Repacker
         {
             public readonly ModKey modKey;
             public bool isMaster = false;
-            public bool isLight = false;
+            // public bool isLight = false;
             public bool isVanilla = false;
             public bool isCC = false;
             public readonly HashSet<string> textureArchives = new();
@@ -366,7 +366,7 @@ namespace Ba2Repacker
                 isVanilla = IsVanillaFile(key),
                 isCC = IsCCMod(key),
                 isMaster = modGetter.ModHeader.Flags.HasFlag(Fallout4ModHeader.HeaderFlag.Master),
-                isLight = modGetter.ModHeader.Flags.HasFlag(Fallout4ModHeader.HeaderFlag.Small)
+                // isLight = modGetter.ModHeader.Flags.HasFlag(Fallout4ModHeader.HeaderFlag.Small)
             };
 
             string baseName = Path.GetFileNameWithoutExtension(key.FileName);
