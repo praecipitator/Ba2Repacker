@@ -173,7 +173,7 @@ namespace Ba2Repacker
         private async Task<PreprocessResult?> PreprocessList(List<string> inputList, bool isTextureMode, CancellationToken token)
         {
             BA2State? resultState = null;
-            List<string> resultList = new();
+            List<string> resultList = [];
 
             foreach (var fileName in inputList)
             {

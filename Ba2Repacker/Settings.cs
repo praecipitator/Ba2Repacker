@@ -35,18 +35,23 @@ namespace Ba2Repacker
         [SynthesisOrder]
         [SynthesisSettingName("Mod Blacklist")]
         [SynthesisTooltip("If Whitelist Mode is disabled, these mods will be never eligible for repacking")]
-        public List<ModKey> modBlacklist = new();
+        public List<ModKey> modBlacklist = [];
 
         [SynthesisOrder]
         [SynthesisSettingName("Mod Whitelist")]
         [SynthesisTooltip("If Whitelist Mode is enabled, only these mods will be eligible for repacking")]
-        public List<ModKey> modWhitelist = new();
+        public List<ModKey> modWhitelist = [];
 
         [SynthesisOrder]
         [SynthesisSettingName("Disabled BA2 suffix")]
         [SynthesisTooltip("This will be appended to the filename of a BA2 which has been repacked")]
         public string disabledSuffix = ".repacked";
 
+
+        [SynthesisOrder]
+        [SynthesisSettingName("Undo Mode")]
+        [SynthesisTooltip("If enabled, the patcher will restore all repacked BA2s on next run only, without repacking anything.")]
+        public bool undoMode = false;
 
         [SynthesisOrder]
         [SynthesisSettingName("MO2 Settings")]

@@ -170,7 +170,17 @@ namespace Ba2Repacker
 
         public void Process()
         {
+            WriteLine("Restoring initial archive state...");
             RestoreInitialState();
+            WriteLine("Initial archive state restored.");
+
+            if(this.cfg.undoMode)
+            {
+                WriteLine("Undo Mode, not repacking anything.");
+                return;
+            }
+
+            WriteLine("Preparing for repacking...");
             LoadExistingBa2s();
             LoadCCCfile();
             // var patchFileName = state.PatchMod.ModKey.FileName.String;
