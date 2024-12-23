@@ -39,6 +39,10 @@ When a BA2 was used for repacking, this will be added to it's filename. Keep in 
 so only change it if you are know what you're doing!
 Default: ".repacked"
 
+### Undo Mode
+If enabled, next time the patcher runs, it will restore all repacked BA2s to their original states, undoing all repacking. 
+Disable Undo Mode in order to repack again.
+
 ### MO2 Settings:
 #### Use MO2 mode, if possible:
 If enabled, the patcher will try to detect whenever it is being run through MO2, and switch to MO2 mode if necessary.
