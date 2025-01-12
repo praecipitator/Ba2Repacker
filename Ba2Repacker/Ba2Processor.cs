@@ -218,6 +218,7 @@ namespace Ba2Repacker
                     if (!curFileInfo.HasRepackableFiles())
                     {
                         WriteLine(" -> no repackable files, skipping", true);
+                        continue;
                     }
 
                     if (curFileInfo.isLocalized && !cfg.repackLocalizedFiles)
