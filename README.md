@@ -43,6 +43,11 @@ Default: ".repacked"
 If enabled, next time the patcher runs, it will restore all repacked BA2s to their original states, undoing all repacking. 
 Disable Undo Mode in order to repack again.
 
+### Repack Localized Files
+Repacking localized files will interfere with other patchers, especially item taggers.
+This is probably only safe to enable if you use the Ba2 Repacker, and nothing else! 
+Since CC mods seem to be all localized, this will also make the repacker skip them all, no matter the CC mod setting...
+
 ### MO2 Settings:
 #### Use MO2 mode, if possible:
 If enabled, the patcher will try to detect whenever it is being run through MO2, and switch to MO2 mode if necessary.
