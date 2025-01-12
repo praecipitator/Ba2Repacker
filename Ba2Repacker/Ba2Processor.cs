@@ -189,6 +189,7 @@ namespace Ba2Repacker
             int numTextureFiles = 0;
             List<GenericFileInfo> eligibleMods = new();
 
+            WriteLine("Generating list of potentially eligible mods...");
             foreach (var entry in state.LoadOrder)
             {
                 var key = entry.Key;
@@ -200,16 +201,17 @@ namespace Ba2Repacker
                     numTextureFiles += curFileInfo.textureArchives.Count;
 
                     var fileName = curFileInfo.modKey.ToString();
+                    WriteLine("Checking "+ fileName+"...", true);
 
                     if (curFileInfo.isVanilla)
                     {
-                        WriteLine("Skipping "+ fileName+": vanilla file.", true);
+                        WriteLine(" -> vanilla file, skipping", true);
                         continue;
                     }
 
                     if(curFileInfo.isLocalized && !cfg.repackLocalizedFiles)
                     {
-                        WriteLine("Skipping " + fileName + ": repacking localized files disabled.", true);
+                        WriteLine(" -> repacking localized files disabled, skipping", true);
                         continue;
                     }
 
@@ -219,10 +221,10 @@ namespace Ba2Repacker
                         switch(cfg.ccModsSetting)
                         {
                             case InclusionMode.Never:// never include CC mods
-                                WriteLine("Skipping " + fileName + ": repacking CC mods disabled.", true);
+                                WriteLine(" -> repacking CC mods disabled, skipping", true);
                                 continue;
                             case InclusionMode.Always:
-                                WriteLine("Including" + fileName + ": always incude CC mods.", true);
+                                WriteLine(" -> always include CC mods, including", true);
                                 eligibleMods.Add(curFileInfo);// always include CC mods
                                 continue;
                             // otherwise, go on and check black/whitelist as with other mods
@@ -233,16 +235,22 @@ namespace Ba2Repacker
                     {
                         if (cfg.modWhitelist.Contains(curMod.ModKey))
                         {
-                            WriteLine("Including" + fileName + ": whitelisted.", true);
+                            WriteLine(" -> whitelisted, including", true);
                             eligibleMods.Add(curFileInfo);
+                        } else
+                        {
+                            WriteLine(" -> not whitelisted, skipping", true);
                         }
                     }
                     else
                     {
                         if (!cfg.modBlacklist.Contains(curMod.ModKey))
                         {
-                            WriteLine("Including" + fileName + ": not blacklisted.", true);
+                            WriteLine(" -> not blacklisted, including", true);
                             eligibleMods.Add(curFileInfo);
+                        } else
+                        {
+                            WriteLine(" -> blacklisted, skipping", true);
                         }
                     }
                 }
@@ -251,8 +259,8 @@ namespace Ba2Repacker
             var mainTooMany = numMainFiles - cfg.Ba2Limit;
             var texTooMany = numTextureFiles - cfg.TextureLimit;
 
-            WriteLine("Num main files: " + numMainFiles + "/" + cfg.Ba2Limit);
-            WriteLine("Num texture Files: " + numTextureFiles + "/" + cfg.TextureLimit);
+            WriteLine("Num main archives: " + numMainFiles + "/" + cfg.Ba2Limit);
+            WriteLine("Num texture archives: " + numTextureFiles + "/" + cfg.TextureLimit);
             WriteLine("Num eligible mods: " + (eligibleMods.Count));
 
             List<Task> tasks = new();
