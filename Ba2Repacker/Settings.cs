@@ -30,7 +30,7 @@ namespace Ba2Repacker
         [SynthesisOrder]
         [SynthesisSettingName("Whitelist Mode")]
         [SynthesisTooltip("If enabled, only mods in the whitelist are eligible for repacking. Otherwise, all mods except blacklisted and the game's base files are eligible.")]
-        public bool whitelistMode = true;
+        public bool whitelistMode = false;
 
         [SynthesisOrder]
         [SynthesisSettingName("Mod Blacklist")]
