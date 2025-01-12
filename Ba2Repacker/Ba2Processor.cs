@@ -59,6 +59,11 @@ namespace Ba2Repacker
                 return textureArchives.First();
             }
 
+            public readonly bool HasRepackableFiles()
+            {
+                return mainArchives.Count > 0 && textureArchives.Count > 0;
+            }
+
             public readonly bool CountsAsMaster()
             {
                 var lowerExt = modKey.FileName.Extension.ToLower();
@@ -197,6 +202,7 @@ namespace Ba2Repacker
                 if (curMod != null)
                 {
                     var curFileInfo = GetFileInfo(curMod);
+
                     numMainFiles += curFileInfo.GetNumFiles(false);
                     numTextureFiles += curFileInfo.textureArchives.Count;
 
@@ -209,7 +215,12 @@ namespace Ba2Repacker
                         continue;
                     }
 
-                    if(curFileInfo.isLocalized && !cfg.repackLocalizedFiles)
+                    if (!curFileInfo.HasRepackableFiles())
+                    {
+                        WriteLine(" -> no repackable files, skipping", true);
+                    }
+
+                    if (curFileInfo.isLocalized && !cfg.repackLocalizedFiles)
                     {
                         WriteLine(" -> repacking localized files disabled, skipping", true);
                         continue;
