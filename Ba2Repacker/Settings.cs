@@ -54,6 +54,11 @@ namespace Ba2Repacker
         public bool undoMode = false;
 
         [SynthesisOrder]
+        [SynthesisSettingName("Repack Localized Files")]
+        [SynthesisTooltip("Repacking localized files will interfere with other patchers, especially item taggers. Enable at your own risk!")]
+        public bool repackLocalizedFiles = false;
+
+        [SynthesisOrder]
         [SynthesisSettingName("MO2 Settings")]
         public Section_MO2Settings mo2Settings = new();
 

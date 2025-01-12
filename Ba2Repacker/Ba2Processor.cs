@@ -26,6 +26,7 @@ namespace Ba2Repacker
         {
             public readonly ModKey modKey;
             public bool isMaster = false;
+            public bool isLocalized = false;
             // public bool isLight = false;
             public bool isVanilla = false;
             public bool isCC = false;
@@ -198,8 +199,17 @@ namespace Ba2Repacker
                     numMainFiles += curFileInfo.GetNumFiles(false);
                     numTextureFiles += curFileInfo.textureArchives.Count;
 
+                    var fileName = curFileInfo.modKey.ToString();
+
                     if (curFileInfo.isVanilla)
                     {
+                        WriteLine("Skipping "+ fileName+": vanilla file.", true);
+                        continue;
+                    }
+
+                    if(curFileInfo.isLocalized && !cfg.repackLocalizedFiles)
+                    {
+                        WriteLine("Skipping " + fileName + ": repacking localized files disabled.", true);
                         continue;
                     }
 
@@ -209,8 +219,10 @@ namespace Ba2Repacker
                         switch(cfg.ccModsSetting)
                         {
                             case InclusionMode.Never:// never include CC mods
+                                WriteLine("Skipping " + fileName + ": repacking CC mods disabled.", true);
                                 continue;
                             case InclusionMode.Always:
+                                WriteLine("Including" + fileName + ": always incude CC mods.", true);
                                 eligibleMods.Add(curFileInfo);// always include CC mods
                                 continue;
                             // otherwise, go on and check black/whitelist as with other mods
@@ -221,6 +233,7 @@ namespace Ba2Repacker
                     {
                         if (cfg.modWhitelist.Contains(curMod.ModKey))
                         {
+                            WriteLine("Including" + fileName + ": whitelisted.", true);
                             eligibleMods.Add(curFileInfo);
                         }
                     }
@@ -228,6 +241,7 @@ namespace Ba2Repacker
                     {
                         if (!cfg.modBlacklist.Contains(curMod.ModKey))
                         {
+                            WriteLine("Including" + fileName + ": not blacklisted.", true);
                             eligibleMods.Add(curFileInfo);
                         }
                     }
@@ -376,6 +390,7 @@ namespace Ba2Repacker
                 isVanilla = IsVanillaFile(key),
                 isCC = IsCCMod(key),
                 isMaster = modGetter.ModHeader.Flags.HasFlag(Fallout4ModHeader.HeaderFlag.Master),
+                isLocalized = modGetter.ModHeader.Flags.HasFlag(Fallout4ModHeader.HeaderFlag.Localized),
                 // isLight = modGetter.ModHeader.Flags.HasFlag(Fallout4ModHeader.HeaderFlag.Small)
             };
 
