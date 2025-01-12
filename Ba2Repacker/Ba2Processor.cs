@@ -283,7 +283,7 @@ namespace Ba2Repacker
             {
                 WriteLine("Trying to find " + (mainTooMany) + " main archives to repack", true);
                 var list = SortAndLimit(GetArchiveList(eligibleMods, true), mainTooMany);
-                WriteLine(" -> found " + list.Count + " eligible archives", true);
+                WriteLine("Finished, found " + list.Count + " eligible archives", true);
 
                 if (list.Count > 1)
                 {

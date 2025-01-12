@@ -45,10 +45,13 @@ Disable Undo Mode in order to repack again.
 
 ### Repack Localized Files
 Repacking localized files will interfere with other patchers, especially item taggers.
-This is probably only safe to enable if you use the Ba2 Repacker, and nothing else! 
-Since CC mods seem to be all localized, this will also make the repacker skip them all, no matter the CC mod setting...
+This is safe to enable under two circumstances:
+* You do not use any other patchers except the Ba2 Repacker
+* You add another copy of the Ba2 Repacker to the begin of the pipeline, and enable "Undo Mode" in this copy.
+
 
 ### MO2 Settings:
+
 #### Use MO2 mode, if possible:
 If enabled, the patcher will try to detect whenever it is being run through MO2, and switch to MO2 mode if necessary.
 MO2 mode means, the patcher will attempt to make sure that repacked BA2s stay within the proper MO2 mod subfolder,
