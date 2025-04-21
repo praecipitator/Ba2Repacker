@@ -75,6 +75,11 @@ namespace Ba2Repacker
         public bool useAutoMO2mode = true;
 
         [SynthesisOrder]
+        [SynthesisSettingName("Update MO2 VFS")]
+        [SynthesisTooltip("Force MO2 to update it's Virtual File System after running. See the README on github for more info.")]
+        public bool doRefreshVFS = true;
+
+        [SynthesisOrder]
         [SynthesisSettingName("Override MO2 Profile Name")]
         [SynthesisTooltip("If filled out, the patcher will attempt to use this profile, instead of selected_profile from the INI")]
         public string profileOverride = "";

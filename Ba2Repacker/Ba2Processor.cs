@@ -526,6 +526,11 @@ namespace Ba2Repacker
             {
                 return;
             }
+            if (!cfg.mo2Settings.doRefreshVFS)
+            {
+                WriteLine("MO2 VFS refreshing disabled.");
+                return;
+            }
             WriteLine("Refreshing MO2 VFS...");
 
             var mo2exePath = Path.Combine(path, "ModOrganizer.exe");

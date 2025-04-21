@@ -47,7 +47,7 @@ Disable Undo Mode in order to repack again.
 Repacking localized files will interfere with other patchers, especially item taggers.
 This is safe to enable under two circumstances:
 * You do not use any other patchers except the Ba2 Repacker
-* You add another copy of the Ba2 Repacker to the begin of the pipeline, and enable "Undo Mode" in this copy.
+* You add another copy of the Ba2 Repacker to the begin of the pipeline, and enable "Undo Mode" in that copy. Also make sure that this "Undoer" has "Update MO2 VFS" enabled, or the patchers after it won't see the restored BA2s.
 
 
 ### MO2 Settings:
@@ -57,6 +57,11 @@ If enabled, the patcher will try to detect whenever it is being run through MO2,
 MO2 mode means, the patcher will attempt to make sure that repacked BA2s stay within the proper MO2 mod subfolder,
 otherwise, they will all end up in Overwrite.
 This should now work with both regular and portable installations.
+
+#### Update MO2 VFS:
+If enabled and MO2 has been detected, the repacker will try to launch a dummy BAT file through MO2, forcing it to refresh it's Virtual File System.
+This makes sure that whatever files the repacker changed, any patchers running after it will see these changes. 
+This is especially relevant if you run a repacker in "Undo Mode": without this setting, any following patchers won't see the restored original BA2s, rendering the "Undoer" moot.
 
 #### Override MO2 Profile Name:
 If left empty, the patcher will try to read the current selected MO2 profile from the config files.
