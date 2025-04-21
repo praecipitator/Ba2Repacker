@@ -5,7 +5,9 @@ using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Synthesis;
 using Noggog;
 using System.Diagnostics;
+using System.IO;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 
 namespace Ba2Repacker
 {
@@ -175,6 +177,14 @@ namespace Ba2Repacker
         }
 
         public void Process()
+        {
+            WriteLine("Processing starts...");
+            RealProcess();
+            UpdateMO2VFS();
+            WriteLine("Processing finised.");
+        }
+
+        private void RealProcess()
         {
             WriteLine("Restoring initial archive state...");
             RestoreInitialState();
@@ -503,6 +513,91 @@ namespace Ba2Repacker
                     fsWrapper.RenameFile(srcFullPath, dstFullPath);
                 }
             }
+        }
+
+        private void UpdateMO2VFS()
+        {
+            var path = GetMO2Path();
+
+            if(path == "")
+            {
+                return;
+            }
+            WriteLine("Refreshing MO2 VFS...");
+
+            var mo2exePath = Path.Combine(path, "ModOrganizer.exe");
+            if(!File.Exists(mo2exePath))
+            {
+                WriteLine("WARNING: We seem to be running through MO2, but "+mo2exePath+" doesn't exist. Cannot update MO2 VFS!");
+                return;
+            }
+
+            // finally, do the dirty hack
+            var tempPath = Path.GetTempPath();
+            var tempFileName = Path.Combine(tempPath, "refresh.bat");
+            WriteLine("Preparing temporary file "+tempFileName, true);
+            if(File.Exists(tempFileName))
+            {
+                File.Delete(tempFileName);
+            }
+            CreateTempBat(tempFileName);
+
+            WriteLine("Launching "+tempFileName, true);
+            if(LaunchTempFile(mo2exePath, tempFileName))
+            {
+                WriteLine("MO2 VFS refreshed.");
+            } else
+            {
+                WriteLine("WARNING: Failed to refresh MO2's VFS!");
+            }
+        }
+
+        private bool LaunchTempFile(string mo2ExePath, string tempFileName)
+        {
+            // I:\Games\MO2\ModOrganizer.exe run C:\Windows\System32\notepad.exe
+            // Prepare the process to run
+            var argString = "run " + tempFileName;
+            ProcessStartInfo start = new()
+            {
+                // Enter in the command line arguments, everything you would enter after the executable name itself
+                Arguments = argString,
+                // Enter the executable to run, including the complete path
+                FileName = mo2ExePath,
+                // Do you want to show a console window?
+                WindowStyle = ProcessWindowStyle.Hidden,
+                CreateNoWindow = true
+            };
+            
+
+
+            // Run the external process & wait for it to finish
+            var proc = System.Diagnostics.Process.Start(start);
+            if(proc == null)
+            {
+                WriteLine("WARNING: failed to launch "+ mo2ExePath+" with arguments "+ argString);
+                return false;
+            }
+            
+            proc.WaitForExit(5000); // give it 5 seconds to finish
+            if(proc.HasExited)
+            {
+                var exitCode = proc.ExitCode;
+                WriteLine("MO2 exited with code "+exitCode.ToString(), true);
+            } else
+            {
+                WriteLine("WARNING: MO2 at "+ mo2ExePath + " failed to exit, this is probably a problem");
+                return false;
+            }
+
+            return true;
+        }
+
+        private static void CreateTempBat(string tempFileName)
+        {
+            StreamWriter outputFile = new StreamWriter(tempFileName);
+            outputFile.WriteLine("@echo off");
+            outputFile.WriteLine("echo \"Dummy BAT file to force MO2's VFS to refresh\"");
+            outputFile.Close();
         }
 
         private void DeleteIfExists(string fileName)
