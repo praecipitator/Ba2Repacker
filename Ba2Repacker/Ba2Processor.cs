@@ -5,9 +5,7 @@ using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Synthesis;
 using Noggog;
 using System.Diagnostics;
-using System.IO;
 using System.Text.RegularExpressions;
-using System.Xml.Linq;
 
 namespace Ba2Repacker
 {
@@ -29,6 +27,7 @@ namespace Ba2Repacker
             public readonly ModKey modKey;
             public bool isMaster = false;
             public bool isLocalized = false;
+
             // public bool isLight = false;
             public bool isVanilla = false;
             public bool isCC = false;
@@ -94,6 +93,8 @@ namespace Ba2Repacker
 
         private const string MO2_DLL_x64 = "usvfs_x64.dll";
         private const string MO2_DLL_x86 = "usvfs_x86.dll";
+
+        private const string TEMP_BAT_NAME = "refresh_mo2_helper.bat";
 
         private static readonly HashSet<ModKey> vanillaMods = new()
         {
@@ -190,7 +191,7 @@ namespace Ba2Repacker
             RestoreInitialState();
             WriteLine("Initial archive state restored.");
 
-            if(this.cfg.undoMode)
+            if (this.cfg.undoMode)
             {
                 WriteLine("Undo Mode, not repacking anything.");
                 return;
@@ -217,7 +218,7 @@ namespace Ba2Repacker
                     numTextureFiles += curFileInfo.textureArchives.Count;
 
                     var fileName = curFileInfo.modKey.ToString();
-                    WriteLine("Checking "+ fileName+"...", true);
+                    WriteLine("Checking " + fileName + "...", true);
 
                     if (curFileInfo.isVanilla)
                     {
@@ -237,10 +238,10 @@ namespace Ba2Repacker
                         continue;
                     }
 
-                    if(curFileInfo.isCC) // this is a CC mod
+                    if (curFileInfo.isCC) // this is a CC mod
                     {
                         // what do we do with CC mods?
-                        switch(cfg.ccModsSetting)
+                        switch (cfg.ccModsSetting)
                         {
                             case InclusionMode.Never:// never include CC mods
                                 WriteLine(" -> repacking CC mods disabled, skipping", true);
@@ -249,7 +250,7 @@ namespace Ba2Repacker
                                 WriteLine(" -> always include CC mods, including", true);
                                 eligibleMods.Add(curFileInfo);// always include CC mods
                                 continue;
-                            // otherwise, go on and check black/whitelist as with other mods
+                                // otherwise, go on and check black/whitelist as with other mods
                         }
                     }
 
@@ -259,7 +260,8 @@ namespace Ba2Repacker
                         {
                             WriteLine(" -> whitelisted, including", true);
                             eligibleMods.Add(curFileInfo);
-                        } else
+                        }
+                        else
                         {
                             WriteLine(" -> not whitelisted, skipping", true);
                         }
@@ -270,7 +272,8 @@ namespace Ba2Repacker
                         {
                             WriteLine(" -> not blacklisted, including", true);
                             eligibleMods.Add(curFileInfo);
-                        } else
+                        }
+                        else
                         {
                             WriteLine(" -> blacklisted, skipping", true);
                         }
@@ -519,37 +522,41 @@ namespace Ba2Repacker
         {
             var path = GetMO2Path();
 
-            if(path == "")
+            if (path == "")
             {
                 return;
             }
             WriteLine("Refreshing MO2 VFS...");
 
             var mo2exePath = Path.Combine(path, "ModOrganizer.exe");
-            if(!File.Exists(mo2exePath))
+            if (!File.Exists(mo2exePath))
             {
-                WriteLine("WARNING: We seem to be running through MO2, but "+mo2exePath+" doesn't exist. Cannot update MO2 VFS!");
+                WriteLine("WARNING: We seem to be running through MO2, but " + mo2exePath + " doesn't exist. Cannot update MO2 VFS!");
                 return;
             }
 
             // finally, do the dirty hack
             var tempPath = Path.GetTempPath();
-            var tempFileName = Path.Combine(tempPath, "refresh.bat");
-            WriteLine("Preparing temporary file "+tempFileName, true);
-            if(File.Exists(tempFileName))
+            var tempFileName = Path.Combine(tempPath, TEMP_BAT_NAME);
+            WriteLine("Preparing temporary file " + tempFileName, true);
+            if (File.Exists(tempFileName))
             {
                 File.Delete(tempFileName);
             }
             CreateTempBat(tempFileName);
 
-            WriteLine("Launching "+tempFileName, true);
-            if(LaunchTempFile(mo2exePath, tempFileName))
+            WriteLine("Launching " + tempFileName, true);
+            if (LaunchTempFile(mo2exePath, tempFileName))
             {
                 WriteLine("MO2 VFS refreshed.");
-            } else
+            }
+            else
             {
                 WriteLine("WARNING: Failed to refresh MO2's VFS!");
             }
+
+            // cleanup
+            File.Delete(tempFileName);
         }
 
         private bool LaunchTempFile(string mo2ExePath, string tempFileName)
@@ -567,25 +574,24 @@ namespace Ba2Repacker
                 WindowStyle = ProcessWindowStyle.Hidden,
                 CreateNoWindow = true
             };
-            
-
 
             // Run the external process & wait for it to finish
             var proc = System.Diagnostics.Process.Start(start);
-            if(proc == null)
+            if (proc == null)
             {
-                WriteLine("WARNING: failed to launch "+ mo2ExePath+" with arguments "+ argString);
+                WriteLine("WARNING: failed to launch " + mo2ExePath + " with arguments " + argString);
                 return false;
             }
-            
+
             proc.WaitForExit(5000); // give it 5 seconds to finish
-            if(proc.HasExited)
+            if (proc.HasExited)
             {
                 var exitCode = proc.ExitCode;
-                WriteLine("MO2 exited with code "+exitCode.ToString(), true);
-            } else
+                WriteLine("MO2 exited with code " + exitCode.ToString(), true);
+            }
+            else
             {
-                WriteLine("WARNING: MO2 at "+ mo2ExePath + " failed to exit, this is probably a problem");
+                WriteLine("WARNING: MO2 at " + mo2ExePath + " failed to exit, this is probably a problem");
                 return false;
             }
 
